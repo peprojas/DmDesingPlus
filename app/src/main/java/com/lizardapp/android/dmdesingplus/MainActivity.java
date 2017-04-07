@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
                     // Cuando pasen los 3 segundos, pasamos a la actividad principal de la aplicación
                     startActivity(iniciologin);
                     finish();
-                };
+                }
             }, AUTO_HIDE_DELAY_MILLIS);
 
         }
