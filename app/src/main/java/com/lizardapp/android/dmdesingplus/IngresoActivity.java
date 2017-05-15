@@ -1,14 +1,15 @@
 package com.lizardapp.android.dmdesingplus;
 
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
@@ -20,21 +21,14 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
-import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.MalformedURLException;
-import java.security.Principal;
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.jar.JarException;
 
 public class IngresoActivity extends AppCompatActivity {
 
@@ -46,6 +40,7 @@ public class IngresoActivity extends AppCompatActivity {
     private ProfileTracker profileTracker;
     AccessToken accessToken;
     Button botoningreso;
+    public String perfil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +61,8 @@ public class IngresoActivity extends AppCompatActivity {
                             public void onCompleted(JSONObject object, GraphResponse response) {
 
                                 Log.d("json",object.toString());
+                                perfil = object.toString();
+                                SetearPreferencias(perfil);
 
                                 try {
                                     emailID = object.getString("email");
@@ -78,6 +75,7 @@ public class IngresoActivity extends AppCompatActivity {
                             }
                         });
                 request.executeAsync();
+                Log.d("profile",profile.toString());
                 nextActivity(profile);
 
             }
@@ -99,24 +97,16 @@ public class IngresoActivity extends AppCompatActivity {
             }
         };
 
-        profileTracker = new ProfileTracker() {
-            @Override
-            protected void onCurrentProfileChanged(Profile oldProfile, Profile newProfile) {
-                nextActivity(newProfile);
-            }
-        };
-        accessTokenTracker.startTracking();
-        profileTracker.startTracking();
         setContentView(R.layout.activity_ingreso);
 
         loginButton = (LoginButton) findViewById(R.id.login_button);
         info = (TextView)findViewById(R.id.textView) ;
 
         List<String> permissions = new ArrayList<>();
-        permissions.add("public_profile, email");
-       // permissions.add("email");
+        permissions.add("public_profile");
+        permissions.add("email");
 
-        loginButton.setReadPermissions("email");
+        loginButton.setReadPermissions(permissions);
 
 
 
@@ -140,10 +130,20 @@ public class IngresoActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        //super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
+    public void SetearPreferencias(String parametros){
 
+        SharedPreferences misPrefencias = getSharedPreferences("PreferenciasUsuarios", Context.MODE_PRIVATE);
+        SharedPreferences.Editor miEditor = misPrefencias.edit();
+        miEditor.putBoolean("cheked",true);
+        miEditor.putString("params",parametros);
+        miEditor.commit();
+
+
+    }
     private void nextActivity(Profile profile){
         if(profile != null){
             Intent main = new Intent(IngresoActivity.this, Main2Activity.class);
@@ -151,11 +151,7 @@ public class IngresoActivity extends AppCompatActivity {
             main.putExtra("usurname", profile.getLastName());
             info.setText(profile.getName());
             main.putExtra("imageUrl", profile.getProfilePictureUri(200,200).toString());
-
-
             main.putExtra("mail",emailID);
-
-
 
 
 

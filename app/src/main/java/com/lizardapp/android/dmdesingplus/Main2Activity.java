@@ -1,25 +1,33 @@
 package com.lizardapp.android.dmdesingplus;
 
-import android.support.design.widget.TabLayout;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Toast;
 
-import android.widget.TextView;
+import com.lizardapp.android.dmdesingplus.entidades.Anuncio;
+import com.soundcloud.android.crop.Crop;
 
-public class Main2Activity extends AppCompatActivity {
+import java.io.File;
+
+import static com.lizardapp.android.dmdesingplus.ImagenFragment.REQUEST_IMAGE_CAPTURE;
+
+public class Main2Activity extends AppCompatActivity implements DatosFragment.OnFragmentInteractionListener, ImagenFragment.OnFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -35,15 +43,76 @@ public class Main2Activity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    Uri imageUri;
+    ImagenFragment imgfragment;
+    DatosFragment datosFragment;
+    Anuncio anuncio;
+
+
+
+
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent result) {
+
+
+
+        if (requestCode == Crop.REQUEST_PICK && resultCode == RESULT_OK) {
+            beginCrop(result.getData());
+        }
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+
+            beginCrop(result.getData());
+
+        }
+
+        else if (requestCode == Crop.REQUEST_CROP) {
+
+
+        imgfragment.onActivityResult(requestCode, resultCode, result);
+
+
+
+        }
+
+
+
+    }
+
+    private void handleCrop(int resultCode, Intent result) {
+        if (resultCode == RESULT_OK) {
+            //imagen.setImageURI(Crop.getOutput(result));
+               imageUri = Crop.getOutput(result);
+
+
+        } else if (resultCode == Crop.RESULT_ERROR) {
+            Toast.makeText(this, Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    private void beginCrop(Uri source) {
+        Uri destination = Uri.fromFile(new File(getCacheDir(), "cropped"));
+        Crop.of(source, destination).asSquare().start(this);
+
+    }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
 
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -55,16 +124,21 @@ public class Main2Activity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+
+                anuncio= datosFragment.onSetearData();
+                Snackbar.make(view, "Se guardo la data", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
 
     }
+
+
 
 
     @Override
@@ -89,40 +163,48 @@ public class Main2Activity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+
+
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+        if (item.getItemId()==R.id.action_settings){
+
+            Toast.makeText(this,"Cerrar Sesión",Toast.LENGTH_SHORT);
+            DeletePreferencias();
+            Intent cerrar = new Intent(Main2Activity.this,IngresoActivity.class);
+
+            startActivity(cerrar);
+
+        }
+
+
+        return false;
+    }
+
+
+    public void DeletePreferencias(){
+
+        SharedPreferences misPrefencias = getSharedPreferences("PreferenciasUsuarios", Context.MODE_PRIVATE);
+        SharedPreferences.Editor miEditor = misPrefencias.edit();
+        miEditor.putBoolean("cheked",false);
+        miEditor.putString("params","");
+        miEditor.commit();
+
+
+    }
+
+
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
 
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main2, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -138,8 +220,38 @@ public class Main2Activity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+
+
+            if (position==0){
+
+
+                datosFragment = DatosFragment.newInstance("aa","bb");
+
+                  return datosFragment;
+
+            }
+            if (position==1){
+
+                 imgfragment = ImagenFragment.newInstance("a","b");
+
+                return imgfragment;
+
+
+            }
+            if (position==2){
+                return DatosFragment.newInstance("aa","bb");
+
+            }
+            else{
+
+                return DatosFragment.newInstance("aa","bb");
+            }
+
+
+
         }
+
+        
 
         @Override
         public int getCount() {
@@ -151,13 +263,14 @@ public class Main2Activity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "Datos";
                 case 1:
-                    return "SECTION 2";
+                    return "Imagen";
                 case 2:
-                    return "SECTION 3";
+                    return "Recursos";
             }
             return null;
         }
+
     }
 }

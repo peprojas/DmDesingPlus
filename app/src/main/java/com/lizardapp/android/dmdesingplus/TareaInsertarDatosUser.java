@@ -2,31 +2,25 @@ package com.lizardapp.android.dmdesingplus;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.webkit.HttpAuthHandler;
-import android.widget.Toast;
-//import org.apache.http.client;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Iterator;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import static com.facebook.FacebookSdk.getApplicationContext;
+
+//import org.apache.http.client;
 
 /**
  * Created by joserojas on 5/4/17.
@@ -141,8 +135,7 @@ public class TareaInsertarDatosUser extends AsyncTask <String,String,String>{
     protected  void  onPostExecute(String Result) {
         super.onPostExecute(Result);
         Log.d("result",Result);
-      Toast.makeText(getApplicationContext(), Result,
-              Toast.LENGTH_LONG).show();
+
 
     }
 
@@ -175,4 +168,6 @@ public class TareaInsertarDatosUser extends AsyncTask <String,String,String>{
         Log.d("from",result.toString());
         return result.toString();
     }
+
+
 }
