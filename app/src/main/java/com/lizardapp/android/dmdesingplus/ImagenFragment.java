@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
@@ -16,15 +17,24 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.Gallery;
+import android.widget.ImageButton;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
+import com.facebook.share.model.SharePhoto;
+import com.facebook.share.model.SharePhotoContent;
+import com.facebook.share.widget.SendButton;
+import com.facebook.share.widget.ShareButton;
 import com.lizardapp.android.dmdesingplus.ImageEditor.FusionImage;
+import com.lizardapp.android.dmdesingplus.entidades.Anuncio;
+import com.lizardapp.android.dmdesingplus.entidades.Recurso;
 import com.soundcloud.android.crop.Crop;
 
-import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -48,7 +58,7 @@ public class ImagenFragment extends Fragment implements AdapterView.OnItemSelect
     public static final String TAG = "ImagenFragment";
 
     private static final int PICK_IMAGE = 100;
-    private  ImageView imagen;
+    public   ImageView imagen;
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
     // TODO: Rename and change types of parameters
@@ -57,8 +67,18 @@ public class ImagenFragment extends Fragment implements AdapterView.OnItemSelect
     Button botonfoto;
     Button botongallery;
     Button botoncamara;
+    Button compartir;
+    ImageButton logo;
+    ShareButton shareButton;
     private  Uri imageUri;
     private Gallery g;
+    public Anuncio anuncio;
+    ArrayList<Recurso> ListaRecursos;
+    Recurso recurso;
+    Bitmap imageFinal;
+    SendButton sendButton;
+
+    String colorx;
 
 
     private  View vista;
@@ -100,24 +120,16 @@ public class ImagenFragment extends Fragment implements AdapterView.OnItemSelect
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+
+
     }
 
 
-    private  void handleCrop(int resultCode, Intent result) {
-        if (resultCode == RESULT_OK) {
-         //   imagen.setImageURI(Crop.getOutput(result));
-
-            imagen.setImageURI(null);
-            imageUri = Crop.getOutput(result);
-
-            imagen.setImageURI(imageUri);
-            imagen.setVisibility(View.VISIBLE);
-            g.setVisibility(View.VISIBLE);
 
 
-        } else if (resultCode == Crop.RESULT_ERROR) {
-           // Toast.makeText(getActivity(), Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
-        }
+    public void  setearDataAnuncio(Anuncio data){
+        anuncio = data;
     }
 
 
@@ -131,18 +143,28 @@ public class ImagenFragment extends Fragment implements AdapterView.OnItemSelect
         imagen = (ImageView)vista.findViewById(R.id.imagenfrag);
        // texto = (TextView)vista.findViewById(R.id.textView3);
         botongallery = (Button) vista.findViewById(R.id.button4);
-     //   mswitcher = (ImageSwitcher) vista.findViewById(R.id.imageswi);
-       // mswitcher.setFactory(this);
+        sendButton = (SendButton) vista.findViewById(R.id.fb_send_button);
+
+         shareButton = (ShareButton)vista.findViewById(R.id.fb_shared_button);
+        logo = (ImageButton) vista.findViewById(R.id.imageButtonLogo);
+
 
         //Gallery for placing images
          g = (Gallery) vista.findViewById(R.id.gallery);
+        ListaRecursos = new ArrayList<Recurso>();
+
+        recurso = new Recurso();
+
+
+        ListaRecursos.add(recurso.setearObjeto(R.drawable.pic001,"pic1",R.mipmap.pic001_mini,"255/255/255",70,150,50,940,50,980,700,200,500,500));
+        ListaRecursos.add(recurso.setearObjeto(R.drawable.pic002,"pic2",R.mipmap.pic002_mini,"255/255/255",70,150,50,940,50,980,700,200,500,500));
+        ListaRecursos.add(recurso.setearObjeto(R.drawable.pic003,"pic3",R.mipmap.pic003_mini,"255/255/255",70,150,50,940,50,980,700,200,500,500));
+        ListaRecursos.add(recurso.setearObjeto(R.drawable.pic004,"pic4",R.mipmap.pic004_mini,"255/255/255",70,200,50,940,50,980,700,200,500,500));
 
         //Setting adapter over gallery
-        g.setAdapter(new ImageAdapter(getContext(), mImageIds));
-
+        g.setAdapter(new ImageAdapter(getContext(), ListaRecursos));
         //Implementing itemselected listener over gallery
         g.setOnItemSelectedListener(ImagenFragment.this);
-
         botongallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -150,18 +172,22 @@ public class ImagenFragment extends Fragment implements AdapterView.OnItemSelect
 
             }
         });
-
         botoncamara = (Button) vista.findViewById(R.id.botoncam);
         botoncamara.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 dispatchTakePictureIntent();
             }
         });
 
+        logo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                Crop.pickImage(getActivity(),2023);
 
+            }
+        });
 
         return vista;
     }
@@ -172,6 +198,8 @@ public class ImagenFragment extends Fragment implements AdapterView.OnItemSelect
             getActivity().startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
     }
+
+
 
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -207,43 +235,99 @@ public class ImagenFragment extends Fragment implements AdapterView.OnItemSelect
 
          if (requestCode == Crop.REQUEST_CROP) {
              Log.d("URL4","se setio imagen");
+             Uri ur = Crop.getOutput(result);
+             Log.d("uri",ur.toString());
             handleCrop(resultCode,result);
 
          }
 
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = result.getExtras();
-            //  Bitmap imageBitmap = (Bitmap) extras.get("data");
-            //mImageView.setImageBitmap(imageBitmap);
-            beginCrop(result.getData());
+
+
+    }
+
+
+    private  void handleCrop(int resultCode, Intent result) {
+        if (resultCode == RESULT_OK) {
+            //   imagen.setImageURI(Crop.getOutput(result));
+
+//            imagen.setImageURI(null);
+            imageUri = Crop.getOutput(result);
+
+            Log.d("uri",imageUri.toString());
+            imagen.setImageURI(imageUri);
+            imagen.setVisibility(View.VISIBLE);
+            g.setVisibility(View.VISIBLE);
+
+
+        } else if (resultCode == Crop.RESULT_ERROR) {
+            // Toast.makeText(getActivity(), Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
         }
-
-
-
     }
 
-    private void beginCrop(Uri source) {
-        Uri destination = Uri.fromFile(new File(getContext().getCacheDir(), "cropped"));
-        Crop.of(source, destination).asSquare().start(getActivity());
 
-
-    }
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
        // mswitcher.setImageResource(mImageIds[i]);
+
+        //imageFinal.recycle();
+
+
         try {
-            final Bitmap marca = BitmapFactory.decodeResource(getActivity().getResources(), mImageIds[i]);
+          final Bitmap  recursox = BitmapFactory.decodeResource(getActivity().getResources(), ListaRecursos.get(i).getId());
 
+            colorx =ListaRecursos.get(i).getColorrgb();
             FusionImage fusionImage = new FusionImage();
+            Bitmap mp = loadImageFromURL(imageUri.toString());
+            imageFinal = fusionImage.thelast(mp,recursox,anuncio.getEncabezado(),colorx,
+                    anuncio.getTelefono(),anuncio.getDireccion(),anuncio.getPrecio(),
+                    anuncio.getDescripción(),ListaRecursos.get(i).getPosition1(),ListaRecursos.get(i).getPosition2(),ListaRecursos.get(i).getPosition3(),
+                    ListaRecursos.get(i).getPosition4(),ListaRecursos.get(i).getPosition5() ,ListaRecursos.get(i).getPosition6(),
+                    ListaRecursos.get(i).getPosition7(),ListaRecursos.get(i).getPosition8(),ListaRecursos.get(i).getPosition9(),
+                    ListaRecursos.get(i).getPosition10());
 
-            imagen.setImageBitmap(fusionImage.thelast(fusionImage.loadImageFromURL(imageUri.toString()),marca));
+
+
+
+
+            imagen.setImageBitmap(imageFinal);
+
+
+            SharePhoto photo = new SharePhoto.Builder()
+                    .setBitmap(imageFinal)
+                    .build();
+
+            SharePhotoContent content = new SharePhotoContent.Builder()
+                    .addPhoto(photo)
+                    .build();
+
+            shareButton.setShareContent(content);
+            sendButton.setShareContent(content);
+
+
+
+
         }catch(Exception e){
 
             Log.d("Error",e.toString());
         }
 
 
+    }
+    public Bitmap loadImageFromURL(String url) {
+        try {
+            BitmapFactory.Options btfctory = new BitmapFactory.Options();
+            btfctory.inSampleSize=2;
+
+
+            InputStream is = (InputStream) new URL(url).getContent();
+            Bitmap d = BitmapFactory.decodeStream(is,null,btfctory);
+            return d;
+        } catch (Exception e) {
+
+            Log.d("error imagen 1",e.toString());
+            return null;
+        }
     }
 
     @Override
@@ -284,4 +368,30 @@ public class ImagenFragment extends Fragment implements AdapterView.OnItemSelect
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
+    private class TaskImagen extends AsyncTask<Integer,Integer,Boolean>{
+
+
+        @Override
+        protected Boolean doInBackground(Integer... params) {
+
+
+            try{
+
+                FusionImage fusionImage = new FusionImage();
+              /*  imageFinal = fusionImage.thelast(fusionImage.loadImageFromURL(imageUri.toString()),recursox,anuncio.getEncabezado(),colorx,
+                        anuncio.getTelefono(),anuncio.getDireccion(),anuncio.getPrecio(),
+                        anuncio.getDescripción(),(params[1]),params[2],params[3],
+                        params[4],params[5],params[6],
+                        params[7],params[8],params[9],
+                        params[10]);*/
+
+            }
+            catch (Exception e){};
+
+            return null;
+        }
+    }
+
 }

@@ -4,9 +4,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -38,6 +40,7 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
@@ -82,6 +85,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private ProfileTracker profileTracker;
     AccessToken accessToken;
     String emailID;
+    List<String> permissions;
 
 
     @Override
@@ -105,7 +109,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                             public void onCompleted(JSONObject object, GraphResponse response) {
 
-                                Log.d("json",object.toString());
+                               // Log.d("json",object.toString());
+                                SetearPreferencias(object.toString());
 
                                 try {
                                     emailID = object.getString("email");
@@ -152,12 +157,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         loginButton = (LoginButton) findViewById(R.id.login_button);
        // info = (TextView)findViewById(R.id.textView) ;
 
-      List<String> permissions = new ArrayList<>();
-       permissions.add("public_profile");
-        permissions.add("email");
+      permissions = new ArrayList<>();
+        permissions.add("public_profile");
+
+
         loginButton.setReadPermissions(permissions);
 
-        // LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
+
         loginButton.registerCallback(callbackManager, callback);
 
 
@@ -194,6 +200,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private void nextActivity(Profile profile) {
+
+        LoginManager.getInstance().logInWithReadPermissions(this, permissions);
+
         if (profile != null) {
             Intent main = new Intent(LoginActivity.this, Main2Activity.class);
             main.putExtra("name", profile.getFirstName());
@@ -207,6 +216,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             startActivity(main);
         }
+
+    }
+
+    public void SetearPreferencias(String parametros){
+
+        SharedPreferences misPrefencias = getSharedPreferences("PreferenciasUsuarios", Context.MODE_PRIVATE);
+        SharedPreferences.Editor miEditor = misPrefencias.edit();
+        miEditor.putBoolean("cheked",true);
+        miEditor.putString("params",parametros);
+        miEditor.commit();
+
+        Log.d("Preferencias", "se setiaron: "+parametros);
+
 
     }
 

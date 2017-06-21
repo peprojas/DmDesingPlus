@@ -62,7 +62,7 @@ public class IngresoActivity extends AppCompatActivity {
 
                                 Log.d("json",object.toString());
                                 perfil = object.toString();
-                                SetearPreferencias(perfil);
+
 
                                 try {
                                     emailID = object.getString("email");
@@ -74,6 +74,7 @@ public class IngresoActivity extends AppCompatActivity {
                                 }
                             }
                         });
+
                 request.executeAsync();
                 Log.d("profile",profile.toString());
                 nextActivity(profile);
@@ -142,6 +143,8 @@ public class IngresoActivity extends AppCompatActivity {
         miEditor.putString("params",parametros);
         miEditor.commit();
 
+        Log.d("Preferencias", "se setiaron: "+parametros);
+
 
     }
     private void nextActivity(Profile profile){
@@ -152,6 +155,9 @@ public class IngresoActivity extends AppCompatActivity {
             info.setText(profile.getName());
             main.putExtra("imageUrl", profile.getProfilePictureUri(200,200).toString());
             main.putExtra("mail",emailID);
+
+            SetearPreferencias(perfil);
+
 
 
 

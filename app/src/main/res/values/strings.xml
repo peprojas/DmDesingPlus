@@ -20,6 +20,14 @@
     <string name="action_exit">Cerrar Sesión</string>
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="title_activity_main2">DM Design App</string>
+    <string name="empresa">Lizard Systems Corporation</string>
+    <string name="Developer1">J. Rojas</string>
+    <string name="Developer2">J. Mero</string>
+    <string name="Desing">J. Flores</string>
+    <string name="web">www.lizardapp.com</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

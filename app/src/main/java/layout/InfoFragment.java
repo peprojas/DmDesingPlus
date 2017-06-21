@@ -1,4 +1,4 @@
-package com.lizardapp.android.dmdesingplus;
+package layout;
 
 import android.content.Context;
 import android.net.Uri;
@@ -7,36 +7,30 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 
-import com.lizardapp.android.dmdesingplus.entidades.Anuncio;
-
+import com.lizardapp.android.dmdesingplus.R;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link DatosFragment.OnFragmentInteractionListener} interface
+ * {@link InfoFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link DatosFragment#newInstance} factory method to
+ * Use the {@link InfoFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class DatosFragment extends Fragment {
+public class InfoFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    View vistadatos;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
-
-
-
     private OnFragmentInteractionListener mListener;
 
-    public DatosFragment() {
+    public InfoFragment() {
         // Required empty public constructor
     }
 
@@ -46,11 +40,11 @@ public class DatosFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment DatosFragment.
+     * @return A new instance of fragment InfoFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static DatosFragment newInstance(String param1, String param2) {
-        DatosFragment fragment = new DatosFragment();
+    public static InfoFragment newInstance(String param1, String param2) {
+        InfoFragment fragment = new InfoFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -70,11 +64,8 @@ public class DatosFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        vistadatos = inflater.inflate(R.layout.fragment_datos, container, false);
-
         // Inflate the layout for this fragment
-        return vistadatos;
+        return inflater.inflate(R.layout.fragment_info, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -99,28 +90,6 @@ public class DatosFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-
-    public Anuncio onSetearData(){
-        EditText edi1;
-        Anuncio anuncio = new Anuncio()
-                ;
-
-        edi1 = (EditText) (vistadatos.findViewById(R.id.txtencabezado));
-        anuncio.setEncabezado(edi1.getText().toString());
-        edi1 = (EditText) (vistadatos.findViewById(R.id.txtdireccion));
-        anuncio.setDireccion(edi1.getText().toString());
-        edi1 = (EditText) (vistadatos.findViewById(R.id.txttelefono));
-        anuncio.setTelefono(edi1.getText().toString());
-        edi1 = (EditText) (vistadatos.findViewById(R.id.txtprice));
-        anuncio.setPrecio(edi1.getText().toString());
-        edi1 = (EditText)(vistadatos.findViewById(R.id.editText3));
-        anuncio.setDescripción(edi1.getText().toString());
-
-
-        return anuncio;
-
     }
 
     /**

@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,20 +13,28 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
+import com.facebook.login.LoginManager;
 import com.lizardapp.android.dmdesingplus.entidades.Anuncio;
 import com.soundcloud.android.crop.Crop;
 
 import java.io.File;
 
-import static com.lizardapp.android.dmdesingplus.ImagenFragment.REQUEST_IMAGE_CAPTURE;
+import layout.InfoFragment;
 
-public class Main2Activity extends AppCompatActivity implements DatosFragment.OnFragmentInteractionListener, ImagenFragment.OnFragmentInteractionListener {
+import static com.lizardapp.android.dmdesingplus.ImagenFragment.REQUEST_IMAGE_CAPTURE;
+import static com.lizardapp.android.dmdesingplus.ImagenFragment.newInstance;
+
+public class Main2Activity extends AppCompatActivity implements  DatosFragment.OnFragmentInteractionListener, ImagenFragment.OnFragmentInteractionListener, InfoFragment.OnFragmentInteractionListener{
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -44,61 +51,10 @@ public class Main2Activity extends AppCompatActivity implements DatosFragment.On
      */
     private ViewPager mViewPager;
     Uri imageUri;
-    ImagenFragment imgfragment;
+    final ImagenFragment imgfragment = newInstance("bb","bb");
     DatosFragment datosFragment;
     Anuncio anuncio;
-
-
-
-
-
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent result) {
-
-
-
-        if (requestCode == Crop.REQUEST_PICK && resultCode == RESULT_OK) {
-            beginCrop(result.getData());
-        }
-
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-
-            beginCrop(result.getData());
-
-        }
-
-        else if (requestCode == Crop.REQUEST_CROP) {
-
-
-        imgfragment.onActivityResult(requestCode, resultCode, result);
-
-
-
-        }
-
-
-
-    }
-
-    private void handleCrop(int resultCode, Intent result) {
-        if (resultCode == RESULT_OK) {
-            //imagen.setImageURI(Crop.getOutput(result));
-               imageUri = Crop.getOutput(result);
-
-
-        } else if (resultCode == Crop.RESULT_ERROR) {
-            Toast.makeText(this, Crop.getError(result).getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-    private void beginCrop(Uri source) {
-        Uri destination = Uri.fromFile(new File(getCacheDir(), "cropped"));
-        Crop.of(source, destination).asSquare().start(this);
-
-    }
+    FloatingActionButton fab;
 
 
 
@@ -117,6 +73,7 @@ public class Main2Activity extends AppCompatActivity implements DatosFragment.On
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
+
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -125,16 +82,41 @@ public class Main2Activity extends AppCompatActivity implements DatosFragment.On
         tabLayout.setupWithViewPager(mViewPager);
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+         fab = (FloatingActionButton) findViewById(R.id.fab);
+          fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 anuncio= datosFragment.onSetearData();
-                Snackbar.make(view, "Se guardo la data", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+               /* Snackbar.make(view, "Se guardo la data", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+                mViewPager.setCurrentItem(1);
+                fab.setVisibility(View.INVISIBLE);
+
             }
         });
+
+
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                if (position==0){fab.setVisibility(View.VISIBLE);}
+                if (position==1){ anuncio= datosFragment.onSetearData();
+                    fab.setVisibility(View.INVISIBLE);;}
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
+
 
     }
 
@@ -157,7 +139,13 @@ public class Main2Activity extends AppCompatActivity implements DatosFragment.On
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Toast.makeText(this, "Cerrar Sesión", Toast.LENGTH_SHORT);
+            DeletePreferencias();
+            LoginManager.getInstance().logOut();
+            Intent cerrar = new Intent(Main2Activity.this, LoginActivity.class);
+            startActivity(cerrar);
             return true;
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -170,22 +158,21 @@ public class Main2Activity extends AppCompatActivity implements DatosFragment.On
 
     }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+    public void disconnectFromFacebook() {
 
-        if (item.getItemId()==R.id.action_settings){
-
-            Toast.makeText(this,"Cerrar Sesión",Toast.LENGTH_SHORT);
-            DeletePreferencias();
-            Intent cerrar = new Intent(Main2Activity.this,IngresoActivity.class);
-
-            startActivity(cerrar);
-
+        if (AccessToken.getCurrentAccessToken() == null) {
+            return; // already logged out
         }
 
+        new GraphRequest(AccessToken.getCurrentAccessToken(), "/me/permissions/", null, HttpMethod.DELETE, new GraphRequest
+                .Callback() {
+            @Override
+            public void onCompleted(GraphResponse graphResponse) {
 
-        return false;
+                LoginManager.getInstance().logOut();
+
+            }
+        }).executeAsync();
     }
 
 
@@ -197,6 +184,33 @@ public class Main2Activity extends AppCompatActivity implements DatosFragment.On
         miEditor.putString("params","");
         miEditor.commit();
 
+
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent result) {
+
+        if (requestCode == Crop.REQUEST_PICK && resultCode == RESULT_OK) {
+            beginCrop(result.getData());
+        }
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            beginCrop(result.getData());
+        }
+        else if (requestCode == Crop.REQUEST_CROP) {
+
+            Uri ur = Crop.getOutput(result);
+            Log.d("uri",ur.toString());
+
+            imgfragment.onActivityResult(requestCode, resultCode, result);
+            imgfragment.setearDataAnuncio(anuncio);
+        }
+    }
+
+
+    private void beginCrop(Uri source) {
+        Uri destination = Uri.fromFile(new File(getCacheDir(), "cropped"));
+        Crop.of(source, destination).asSquare().start(this);
 
     }
 
@@ -226,25 +240,26 @@ public class Main2Activity extends AppCompatActivity implements DatosFragment.On
 
 
                 datosFragment = DatosFragment.newInstance("aa","bb");
-
-                  return datosFragment;
+                fab.setVisibility(View.VISIBLE);
+                return datosFragment;
 
             }
             if (position==1){
 
-                 imgfragment = ImagenFragment.newInstance("a","b");
+                //imgfragment = ImagenFragment.newInstance("a","b");
 
                 return imgfragment;
 
 
             }
             if (position==2){
-                return DatosFragment.newInstance("aa","bb");
+
+                return InfoFragment.newInstance("aa","bb");
 
             }
             else{
 
-                return DatosFragment.newInstance("aa","bb");
+                return InfoFragment.newInstance("aa","bb");
             }
 
 
@@ -267,7 +282,7 @@ public class Main2Activity extends AppCompatActivity implements DatosFragment.On
                 case 1:
                     return "Imagen";
                 case 2:
-                    return "Recursos";
+                    return "Info";
             }
             return null;
         }

@@ -45,10 +45,14 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean ObtenerPreferecias()  {
 
-        SharedPreferences misPreferencias = getSharedPreferences("PreferenciasUsuarios", Context.MODE_PRIVATE);
-        Log.d()
+        boolean bandera;
 
-        return misPreferencias.getBoolean("cheked",false);
+        SharedPreferences misPreferencias = getSharedPreferences("PreferenciasUsuarios", Context.MODE_PRIVATE);
+
+         bandera = misPreferencias.getBoolean("cheked",false);
+         Log.d("Preference",String.valueOf(bandera));
+
+        return bandera;
         }
 
     }
